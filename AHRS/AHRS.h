@@ -1,7 +1,7 @@
 #ifndef AHRS_H
 #define AHRS_H
 
-#define BETA 0.1
+#define BETA 0.2
 #define EPSILON		0.0001f
 #define PI		3.14159265359f
 
