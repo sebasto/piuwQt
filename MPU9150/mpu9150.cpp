@@ -77,7 +77,7 @@ int MPU9150AHRS::load_cal(void)
 	if (!f) {
 		std::cout << "./magcal.txt not found\n";
 		//TODO : handle this case with default values
-		return 0;
+		return -1;
 	}
 	
 	for (i = 0; i < 6; i++) {
@@ -113,7 +113,7 @@ int MPU9150AHRS::load_cal(void)
 	if (!f) {
 		std::cout << "accelcal.txt not found\n";
 		//TODO : handle this case with default values
-		return 0;
+		return -1;
 	}
 	
 	for (i = 0; i < 6; i++) {
@@ -205,7 +205,10 @@ MPU9150AHRS::MPU9150AHRS() {
 	mpu_get_gyro_sens(&_gyroSens); // get gyro sensibility (in deg/s)
 	_gyroSens = _gyroSens * (180 / PI); // convert to rad/s
 	mpu_get_accel_sens(&_accSens);
-	load_cal(); //load calibration files for acc and mag
+	if (load_cal() != 0) { //load calibration files for acc and mag
+		std::cout << ("\nCan't read calibration files\n");
+		exit(1);
+	}
     //initGyroOffsets();
 	
 	//set_cal(0, null); //lit le fichier de configuration par défaut pour 
