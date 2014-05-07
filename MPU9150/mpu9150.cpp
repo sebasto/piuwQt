@@ -209,7 +209,7 @@ MPU9150AHRS::MPU9150AHRS() {
 		std::cout << ("\nCan't read calibration files\n");
 		exit(1);
 	}
-    //initGyroOffsets();
+    initGyroOffsets();
 	
 	//set_cal(0, null); //lit le fichier de configuration par défaut pour 
 	//set_cal(1, null);
@@ -234,6 +234,8 @@ void MPU9150AHRS::initGyroOffsets(void){
 	int i,j;
 	short rawGyro[3];
 	
+	
+	std::cout << "Initialising Gyros (" << nbSamples << " samples) \n";
 	for (i = 0; i < 3; i++){
 		_gyroOffset[i] = 0;
 	}
@@ -262,12 +264,13 @@ void MPU9150AHRS::updateData(){
 	short rawMag[3];
 	unsigned long currentTimestamp;
 	int i;
-	int result;
+	
+	/*
     short sensors;
     unsigned char more;
 	long * mpuquat; //value not used but needed to call dmp_read_fifo
 	
-	/*
+	
 	 if ((result = dmp_read_fifo(_rawGyro, _rawAcc, mpuquat, &currentTimestamp, &sensors, &more)) != 0) {
       std::cout << "Error reading fifo" << "\n";
     } 
