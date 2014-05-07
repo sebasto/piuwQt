@@ -318,9 +318,11 @@ void MPU9150AHRS::updateData(){
 	std::cout << "_ahrs->Update("<<_Gyro[0]<<","<<_Gyro[1]<<","<<_Gyro[2]<<","<<_Acc[0]<<","<<_Acc[1]<<","<<_Acc[2]<<","<<_Mag[0]<<","<<_Mag[1]<<","<<_Mag[2]<<","<<(currentTimestamp - _lastMeasureTimestamp) / 1000.0f <<"); \n" ;
 #endif
 
-	_ahrs->Update(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
+	_ahrs->Update(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000000.0f);
 	_lastMeasureTimestamp = currentTimestamp;
 	
+	//printRawData();
+	//_ahrs->printYawPitchRoll();
 }
 
 void MPU9150AHRS::printRawData(){

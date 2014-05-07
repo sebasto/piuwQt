@@ -20,6 +20,14 @@ void MadgwickAHRS::PrintQuat(void) {
 	std::cout << "q0 : " << _Quaternion[0] << " q1 : " << _Quaternion[1] << " q2 : " << _Quaternion[2] << " q3 : " << _Quaternion[3] <<"\n";
 }
 
+void MadgwickAHRS::printYawPitchRoll(void)
+{
+	float yaw,pitch,roll;
+	
+	getYawPitchRoll(&yaw,&pitch,&roll );
+	std::cout << " yaw : " << yaw << " pitch : " << pitch << " roll : " << roll << "\n" ; 
+}
+
 void MadgwickAHRS::getYawPitchRoll(float* yaw, float* pitch, float* roll )
 {
   float gx, gy, gz; // estimated gravity direction
@@ -28,7 +36,7 @@ void MadgwickAHRS::getYawPitchRoll(float* yaw, float* pitch, float* roll )
   gy = 2 * (_Quaternion[0]*_Quaternion[1] + _Quaternion[2]*_Quaternion[3]);
   gz = _Quaternion[0]*_Quaternion[0] - _Quaternion[1]*_Quaternion[1] - _Quaternion[2]*_Quaternion[2] + _Quaternion[3]*_Quaternion[3];
   
-  *yaw = atan2(2 * _Quaternion[1] * _Quaternion[2] - 2 * _Quaternion[0] * _Quaternion[3], 2 * _Quaternion[0]*_Quaternion[0] + 2 * _Quaternion[1] * _Quaternion[1] - 1) * 180/M_PI;
+  *yaw = atan2(2 * _Quaternion[1] * _Quaternion[2] - 2 * _Quaternion[0] * _Quaternion[3], 2 * _Quaternion[0]*_Quaternion[0] + 2 * _Quaternion[1] * _Quaternion[1] - 1) * 180/M_PI +180;
   *pitch = atan(gx / sqrt(gy*gy + gz*gz))  * 180/PI;
   *roll = atan(gy / sqrt(gx*gx + gz*gz))  * 180/PI;
 }
@@ -59,6 +67,9 @@ void MadgwickAHRS::getYawPitchRoll(float* yaw, float* pitch, float* roll )
 /// </param>
 /// <param name="mz">
 /// Magnetometer z axis measurement in any calibrated units.
+/// </param>
+/// <param name="samplePeriod">
+/// Time spent between this measure and the last one (unit = seconds)
 /// </param>
 /// <remarks>
 
