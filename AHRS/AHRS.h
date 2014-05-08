@@ -8,10 +8,12 @@
 class MadgwickAHRS {
 	private :	
 		float _SamplePeriod;
-		float _Beta; //algorithm gain beta.
+		float _Beta; //algorithm gain beta (for Madgwick algorithm)
 		float _Quaternion[4];
 		
-	public:
+		float integralFBx,integralFBy,integralFBz; //needed by FreeIMU
+
+		public:
 		MadgwickAHRS(void);
 		~MadgwickAHRS(void);
 		
@@ -19,6 +21,8 @@ class MadgwickAHRS {
 		void printYawPitchRoll(void);
 		void Update(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz,float samplePeriod);
 		void Update(float gx, float gy, float gz, float ax, float ay, float az,float samplePeriod);
+		void AHRSupdateFreeIMU(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz,float samplePeriod);
 		void PrintQuat();
+		float invSqrt(float number);
 };
 #endif
