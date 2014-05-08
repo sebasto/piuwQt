@@ -69,7 +69,22 @@ void Compass::update(float ax, float ay, float az, float mx, float my, float mz)
 void Compass::updateHeading(float heading)
 {
 	_heading = heading;
+	
+	//avoid gimball lock
+	if ( (_smoothHeading - heading) > 300){
+		heading -= 360;
+	}
+	if ( (_smoothHeading - heading) < -300){
+		heading += 360;
+	}
 	_smoothHeading = _smoothHeading * SMOOTHFACTOR + heading * (1 - SMOOTHFACTOR); 
+	
+	if (_smoothHeading < 0) {	
+		_smoothHeading += 360;
+	}
+	if (_smoothHeading > 360) {	
+		_smoothHeading -= 360;
+	}
 }
 
 float Compass::getHeading(void)
