@@ -27,8 +27,6 @@
 #include "AHRS.h"
 #include "Compass.h"
 
-#define BETA_AHRS 0.2
-
 // The following LPF settings are supported: 188, 98, 42, 20, 10, 5 (Hz)
 #define LOW_PASS_FILTER 0
 #define MPUSAMPLERATE 100 //sample rate of gyro and accel (Hz)
@@ -67,6 +65,7 @@ class MPU9150AHRS{
 		void printRawData();
 		void printData();
 		void getYawPitchRoll(float * yaw,float * pitch, float * roll);
+		float getCompassHeading(void);
 		void printQuat();
 };
 #endif /* MPU9150_H */

@@ -226,7 +226,7 @@ MPU9150AHRS::~MPU9150AHRS() {
 	
 	// turn off the DMP on exit 
 	if (mpu_set_dmp_state(0))
-		printf("mpu_set_dmp_state(0) failed\n");
+		printf("Turn off mpu9150 DMP failed\n");
 
 	// TODO: Should turn off the sensors too
 }
@@ -358,5 +358,8 @@ void MPU9150AHRS::printQuat(){
 
 void MPU9150AHRS::getYawPitchRoll(float * yaw,float * pitch, float * roll) {
 	_ahrs->getYawPitchRoll(yaw,pitch,roll);
-	*yaw = _compass->getSmoothHeading();
+}
+
+float MPU9150AHRS::getCompassHeading(void) {
+	return _compass->getHeading();
 }
