@@ -37,6 +37,10 @@ void Compass::vectorNormalize(vector *v)
 
 void Compass::update(float ax, float ay, float az, float mx, float my, float mz)
 {
+	//std::cout << "Updating compass with : " <<  ax << " " << ay << " " << az << " " << mx << " " << my << " " << mz << "\n";
+
+	float heading;
+
 	vector temp_m;
 	temp_m.x = mx;
 	temp_m.y = my;
@@ -54,13 +58,26 @@ void Compass::update(float ax, float ay, float az, float mx, float my, float mz)
     vectorNormalize(&E);
     N = vectorCross(&temp_a, &E);
     vectorNormalize(&N);
-
+	
     // compute heading
-    _heading = atan2(vectorDot(&E, &_frameOrientation), vectorDot(&N, &_frameOrientation)) * 180 / M_PI;
-    if (_heading < 0) _heading += 360;
+    heading = atan2(vectorDot(&E, &_frameOrientation), vectorDot(&N, &_frameOrientation)) * 180 / M_PI;
+    if (heading < 0) heading += 360;
+	
+	updateHeading(heading);
+}
+
+void Compass::updateHeading(float heading)
+{
+	_heading = heading;
+	_smoothHeading = _smoothHeading * SMOOTHFACTOR + heading * (1 - SMOOTHFACTOR); 
 }
 
 float Compass::getHeading(void)
 {
 	return _heading;
+}
+
+float Compass::getSmoothHeading(void)
+{
+	return _smoothHeading;
 }
