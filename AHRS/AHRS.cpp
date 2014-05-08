@@ -5,10 +5,10 @@
 MadgwickAHRS::MadgwickAHRS()
 {
 	_Beta = BETA;
-	_Quaternion[0] = 1.0; 
-	_Quaternion[1] = 0.0;
-	_Quaternion[2] = 0.0;
-	_Quaternion[3] = 0.0;
+	_Quaternion[0] = 1.0f; 
+	_Quaternion[1] = 0.0f;
+	_Quaternion[2] = 0.0f;
+	_Quaternion[3] = 0.0f;
 }
 
 MadgwickAHRS::~MadgwickAHRS()
@@ -156,6 +156,7 @@ void MadgwickAHRS::Update(float gx, float gy, float gz, float ax, float ay, floa
 	q3 += qDot3 * samplePeriod;
 	q4 += qDot4 * samplePeriod;
 	norm = 1.0 / (float)sqrt(q1 * q1 + q2 * q2 + q3 * q3 + q4 * q4);    // normalise _Quaternion
+	
 	_Quaternion[0] = q1 * norm;
 	_Quaternion[1] = q2 * norm;
 	_Quaternion[2] = q3 * norm;
