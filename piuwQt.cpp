@@ -110,15 +110,19 @@ void MainScreen::timerEvent(QTimerEvent *event){
 	QTime qtime = QTime::currentTime();
 	QString stime = qtime.toString(Qt::TextDate);
 	timeValue->setText(stime);
+	
 	//update depth/T°
 	profsensor.updateData();
+	
 	tmpString.setNum(profsensor.getTemperature(),'f',1);
 	tempValue->setText(tmpString);
 	tmpString.setNum(profsensor.getPressure(),'f',1);
 	depthValue->setText(tmpString);
 	
+	//update mpu
 	mpu.updateData();
 	mpu.getYawPitchRoll(&yaw,&pitch,&roll);
+	
 	tmpString.setNum(yaw,'f',1);
 	yawValue->setText(tmpString);
 	
