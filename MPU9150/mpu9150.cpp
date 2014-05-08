@@ -99,13 +99,13 @@ int MPU9150AHRS::load_cal(void)
 	if (i != 6) 
 		return -1;
 
-	_magOffset[0] = (short)((val[0] + val[1]) / 2);
-	_magOffset[1] = (short)((val[2] + val[3]) / 2);
-	_magOffset[2] = (short)((val[4] + val[5]) / 2);
+	_magOffset[0] = (val[0] + val[1]) / 2;
+	_magOffset[1] = (val[2] + val[3]) / 2;
+	_magOffset[2] = (val[4] + val[5]) / 2;
 
-	_magRange[0] = (short)(val[1] - _magOffset[0]);
-	_magRange[1] = (short)(val[3] - _magOffset[1]);
-	_magRange[2] = (short)(val[5] - _magOffset[2]);
+	_magRange[0] = val[1] - _magOffset[0];
+	_magRange[1] = val[3] - _magOffset[1];
+	_magRange[2] = val[5] - _magOffset[2];
 	
 	
 	f = fopen("./accelcal.txt", "r");
@@ -135,9 +135,9 @@ int MPU9150AHRS::load_cal(void)
 	if (i != 6) 
 		return -1;
 
-	_accOffset[0] = (short)((val[0] + val[1]) / 2);
-	_accOffset[1] = (short)((val[2] + val[3]) / 2);
-	_accOffset[2] = (short)((val[4] + val[5]) / 2);
+	_accOffset[0] = (val[0] + val[1]) / 2;
+	_accOffset[1] = (val[2] + val[3]) / 2;
+	_accOffset[2] = (val[4] + val[5]) / 2;
 	
 	return 0;
 }
@@ -153,11 +153,7 @@ MPU9150AHRS::MPU9150AHRS() {
 	_gyroOffset[0] = -8.7;
 	_gyroOffset[1] = -22.7;
 	_gyroOffset[2] = -4.7;
-	
-	signed char gyro_orientation[9] = { 1, 0, 0,
-                                        0, 1, 0,
-                                        0, 0, 1 };
-	
+		
 	if (mpu_init(NULL)) {
 		std::cout << "\nmpu_init() failed\n";
 	}
@@ -285,6 +281,9 @@ void MPU9150AHRS::updateData(){
 	
 	for (i = 0; i < 3; i++) {
 		_Gyro[i] = ((float)_rawGyro[i] - _gyroOffset[i]) / _gyroSens;
+		if (_Gyro[i] < 0.01) {
+			_Gyro[i] = 0;
+		}
 	}
 #if DEBUG
 	std::cout << "Gyro X " << _rawGyro[0]-_gyroOffset[0] << " Y " << _rawGyro[1]-_gyroOffset[1] << " Z " << _rawGyro[2]-_gyroOffset[2] << "\n";
@@ -295,10 +294,11 @@ void MPU9150AHRS::updateData(){
 	if (mpu_get_accel_reg(_rawAcc, NULL)){
 		std::cout << "\nmpu_get_accel_reg() failed\n";
 	}
+	
 	for (i = 0; i < 3; i++) {
 		_Acc[i] = (float) (_rawAcc[i] - _accOffset[i]) / (float) _accSens;
 	}
-
+	
 #if DEBUG
 	std::cout << "mpu_get_compass_reg() \n" ;
 #endif
@@ -325,16 +325,17 @@ void MPU9150AHRS::updateData(){
 	
 	get_ms(&currentTimestamp);
 	
-#if DEBUG
+#if 1 || DEBUG
 	std::cout << "_ahrs->Update("<<_Gyro[0]<<","<<_Gyro[1]<<","<<_Gyro[2]<<","<<_Acc[0]<<","<<_Acc[1]<<","<<_Acc[2]<<","<<_Mag[0]<<","<<_Mag[1]<<","<<_Mag[2]<<","<<(currentTimestamp - _lastMeasureTimestamp) / 1000.0f <<"); \n" ;
 #endif
 
 	_compass->update(_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2]);
-	_ahrs->Update(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
+	_ahrs->AHRSupdateFreeIMU(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
+	//_ahrs->Update(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
 	_lastMeasureTimestamp = currentTimestamp;
 	
 	//printRawData();
-	//_ahrs->printYawPitchRoll();
+	_ahrs->printYawPitchRoll();
 }
 
 void MPU9150AHRS::printRawData(){
@@ -361,5 +362,5 @@ void MPU9150AHRS::getYawPitchRoll(float * yaw,float * pitch, float * roll) {
 }
 
 float MPU9150AHRS::getCompassHeading(void) {
-	return _compass->getHeading();
+	return _compass->getSmoothHeading();
 }
