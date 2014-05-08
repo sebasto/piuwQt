@@ -25,6 +25,7 @@
 #define MPU9150_H
 
 #include "AHRS.h"
+#include "Compass.h"
 
 #define BETA_AHRS 0.2
 
@@ -38,19 +39,22 @@
 
 class MPU9150AHRS{
 	private :	
-		float _heading;
+		short _rawGyro[3];
 		float _Gyro[3]; //gyro (rad/s)
 		float _gyroOffset[3];
 		float _gyroSens; //gyro sensibility (deg/s)
+		short _rawAcc[3]; 
 		float _Acc[3]; //accelerometer (g's)
 		float _accOffset[3];
 		unsigned short _accSens; //accelerometer sensibility (g's)
+		short _rawMag[3];
 		float _Mag[3];
 		short _magOffset[3];
 		short _magRange[3];
 		long _rawTemp;
 		unsigned long _lastMeasureTimestamp;
 		MadgwickAHRS * _ahrs;
+		Compass * _compass;
 		
 		int load_cal(void);
 		void initGyroOffsets(void);
@@ -61,6 +65,7 @@ class MPU9150AHRS{
 		
 		void updateData();
 		void printRawData();
+		void printData();
 		void getYawPitchRoll(float * yaw,float * pitch, float * roll);
 		void printQuat();
 };
