@@ -17,6 +17,7 @@ INCLUDEPATH += MS5803_14BA
 INCLUDEPATH += MPU9150
 INCLUDEPATH += AHRS
 INCLUDEPATH += eMPL
+INCLUDEPATH += Compass
 
 # Input
 SOURCES += piuwQt.cpp
@@ -28,6 +29,8 @@ SOURCES += MPU9150/mpu9150.cpp
 HEADERS += MPU9150/mpu9150.h
 SOURCES += AHRS/AHRS.cpp
 HEADERS += AHRS/AHRS.h
+SOURCES += Compass/Compass.cpp
+HEADERS += Compass/Compass.h
 SOURCES += eMPL/inv_mpu.c
 HEADERS += eMPL/inv_mpu.h
 SOURCES += eMPL/inv_mpu_dmp_motion_driver.c
