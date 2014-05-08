@@ -18,6 +18,8 @@ class MainScreen : public QWidget
 		QVBoxLayout *leftCol; //left col layout
 		QLabel *yawLabel;
 		QLabel *yawValue;
+		QLabel *compassLabel;
+		QLabel *compassValue;
 		QLabel *depthLabel;
 		QLabel *depthValue;
 		QLabel *tempLabel;
@@ -49,11 +51,16 @@ MainScreen::MainScreen(QWidget *parent)
 	hbox->addLayout(leftCol);
 
 	//// LEFT COL LABELS ////
-	// YAW
-	yawLabel = new QLabel("Yaw :", this);
+	// AHRS YAW
+	yawLabel = new QLabel("AHRS Yaw :", this);
 	leftCol->addWidget(yawLabel,1, Qt::AlignCenter);
 	yawValue = new QLabel("0", this);
 	leftCol->addWidget(yawValue,1, Qt::AlignCenter);
+	// COMPASS YAW
+	compassLabel = new QLabel("Compass Yaw :", this);
+	leftCol->addWidget(compassLabel,1, Qt::AlignCenter);
+	compassValue = new QLabel("0", this);
+	leftCol->addWidget(compassValue,1, Qt::AlignCenter);
 	
 	//DEPTH
 	depthLabel = new QLabel("Depth :", this);
@@ -114,6 +121,9 @@ void MainScreen::timerEvent(QTimerEvent *event){
 	mpu.getYawPitchRoll(&yaw,&pitch,&roll);
 	tmpString.setNum(yaw,'f',1);
 	yawValue->setText(tmpString);
+	
+	tmpString.setNum(mpu.getCompassHeading(),'f',1);
+	compassValue->setText(tmpString);
 }
 
 int main(int argc, char *argv[])
