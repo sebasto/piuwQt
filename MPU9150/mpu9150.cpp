@@ -150,6 +150,8 @@ MPU9150AHRS::MPU9150AHRS() {
 	_ahrs = new(MadgwickAHRS);
 	_compass = new(Compass);
 	
+	_lastMeasureTimestamp = 0;
+	
 	_gyroOffset[0] = -8.7;
 	_gyroOffset[1] = -22.7;
 	_gyroOffset[2] = -4.7;
@@ -323,19 +325,23 @@ void MPU9150AHRS::updateData(){
 		std::cout << "\nmpu_get_temperature() failed\n";
 	}
 	
+	if (_lastMeasureTimestamp == 0) {
+		get_ms(&_lastMeasureTimestamp);
+	}
 	get_ms(&currentTimestamp);
 	
-#if 1 || DEBUG
+#if DEBUG
 	std::cout << "_ahrs->Update("<<_Gyro[0]<<","<<_Gyro[1]<<","<<_Gyro[2]<<","<<_Acc[0]<<","<<_Acc[1]<<","<<_Acc[2]<<","<<_Mag[0]<<","<<_Mag[1]<<","<<_Mag[2]<<","<<(currentTimestamp - _lastMeasureTimestamp) / 1000.0f <<"); \n" ;
 #endif
 
 	_compass->update(_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2]);
-	_ahrs->AHRSupdateFreeIMU(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
+	//_ahrs->AHRSupdateFreeIMU(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
 	//_ahrs->Update(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
+	_ahrs->AHRSupdateMultiWiiIMU(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
 	_lastMeasureTimestamp = currentTimestamp;
 	
 	//printRawData();
-	_ahrs->printYawPitchRoll();
+	//_ahrs->printYawPitchRoll();
 }
 
 void MPU9150AHRS::printRawData(){
