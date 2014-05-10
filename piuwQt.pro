@@ -10,6 +10,9 @@ QMAKE_CFLAGS += -DEMPL_TARGET_LINUX
 QMAKE_CFLAGS += -DMPU9150
 #QMAKE_CCFLAGS += -DDEBUG
 
+DESTDIR = Output
+OBJECTS_DIR += objects 
+
 DEPENDPATH += .
 INCLUDEPATH += .
 INCLUDEPATH += glue
@@ -35,3 +38,6 @@ SOURCES += eMPL/inv_mpu.c
 HEADERS += eMPL/inv_mpu.h
 SOURCES += eMPL/inv_mpu_dmp_motion_driver.c
 HEADERS += eMPL/inv_mpu_dmp_motion_driver.h
+
+
+include(RTIMULib/RTIMULib.pri)

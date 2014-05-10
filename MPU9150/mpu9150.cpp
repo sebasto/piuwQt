@@ -304,20 +304,22 @@ void MPU9150AHRS::updateData(){
 #if DEBUG
 	std::cout << "mpu_get_compass_reg() \n" ;
 #endif
+
 	if (mpu_get_compass_reg(_rawMag, NULL)){
 		std::cout << "\nmpu_get_compass_reg() failed\n";
 	}
-	//the magnetometer does not have the same orientaion as accel and gyro on the MPU9150, here we realign magnetometer
+	
+	//the magnetometer does not have the same orientation as accel and gyro on the MPU9150, here we realign magnetometer
 	// (see http://dlnmh9ip6v2uc.cloudfront.net/datasheets/Sensors/IMU/PS-MPU-9150A.pdf chapter 7)
-	/*
 	for (i = 0; i < 3; i++) {
 		_Mag[i] = (float) (_rawMag[i] - _magOffset[i]) / (float) _magRange[i]; //calibrated mag (arbitrary unit)
 	}
-	*/
+	
+	/*
 	_Mag[0] = (float) (_rawMag[1] - _magOffset[1]) / (float) _magRange[1];
 	_Mag[1] = (float) (_rawMag[0] - _magOffset[0]) / (float) _magRange[0];
 	_Mag[2] =  -(float) (_rawMag[2] - _magOffset[2]) / (float) _magRange[2];
-
+*/
 #if DEBUG
 	std::cout << "mpu_get_temperature() \n" ;
 #endif
@@ -340,7 +342,8 @@ void MPU9150AHRS::updateData(){
 	_ahrs->AHRSupdateMultiWiiIMU(_Gyro[0],_Gyro[1],_Gyro[2],_Acc[0],_Acc[1],_Acc[2],_Mag[0],_Mag[1],_Mag[2],(currentTimestamp - _lastMeasureTimestamp) / 1000.0f);
 	_lastMeasureTimestamp = currentTimestamp;
 	
-	//printRawData();
+	printRawData();
+	//printData();
 	//_ahrs->printYawPitchRoll();
 }
 

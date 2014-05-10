@@ -6,6 +6,7 @@
 #include <QTimer>
 #include "MS5803_14BA.h"
 #include "mpu9150.h"
+#include "RTIMULib.h"
 
 class MainScreen : public QWidget
 {
@@ -18,8 +19,6 @@ class MainScreen : public QWidget
 		QVBoxLayout *leftCol; //left col layout
 		QLabel *yawLabel;
 		QLabel *yawValue;
-		QLabel *compassLabel;
-		QLabel *compassValue;
 		QLabel *depthLabel;
 		QLabel *depthValue;
 		QLabel *tempLabel;
@@ -35,7 +34,8 @@ class MainScreen : public QWidget
 		QTimer *timer;
 		int timerId;
 		MS5803_14BA profsensor;
-		MPU9150AHRS mpu;
+		//MPU9150AHRS mpu;
+		RTIMU *imu;
 };
 
 MainScreen::MainScreen(QWidget *parent)
@@ -56,11 +56,6 @@ MainScreen::MainScreen(QWidget *parent)
 	leftCol->addWidget(yawLabel,1, Qt::AlignCenter);
 	yawValue = new QLabel("0", this);
 	leftCol->addWidget(yawValue,1, Qt::AlignCenter);
-	// COMPASS YAW
-	compassLabel = new QLabel("Compass Yaw :", this);
-	leftCol->addWidget(compassLabel,1, Qt::AlignCenter);
-	compassValue = new QLabel("0", this);
-	leftCol->addWidget(compassValue,1, Qt::AlignCenter);
 	
 	//DEPTH
 	depthLabel = new QLabel("Depth :", this);
@@ -99,6 +94,16 @@ MainScreen::MainScreen(QWidget *parent)
 	timeValue = new QLabel(stime, this);
 	rightCol->addWidget(timeValue,1, Qt::AlignCenter);
  
+	//Initialize IMU 
+	RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
+    imu = RTIMU::createIMU(settings);
+	if ((imu == NULL) || (imu->IMUType() == RTIMU_TYPE_NULL)) {
+        printf("No IMU found\n");
+        exit(1);
+    }
+   //  set up IMU
+    imu->IMUInit();
+ 
     timerId = startTimer(10);
 }
 
@@ -120,14 +125,25 @@ void MainScreen::timerEvent(QTimerEvent *event){
 	depthValue->setText(tmpString);
 	
 	//update mpu
+	/*
 	mpu.updateData();
 	mpu.getYawPitchRoll(&yaw,&pitch,&roll);
+	*/
 	
-	tmpString.setNum(yaw,'f',1);
+	if (!imu->IMURead()) {
+		return;
+	}
+    RTIMU_DATA imuData = imu->getIMUData();
+	
+	yaw = imuData.fusionPose.z() * RTMATH_RAD_TO_DEGREE;
+	if (yaw < 0) {
+		yaw += 360;
+	}
+	tmpString.setNum(yaw,'f',0);
 	yawValue->setText(tmpString);
 	
-	tmpString.setNum(mpu.getCompassHeading(),'f',1);
-	compassValue->setText(tmpString);
+	//tmpString.setNum(mpu.getCompassHeading(),'f',1);
+	//compassValue->setText(tmpString);
 }
 
 int main(int argc, char *argv[])

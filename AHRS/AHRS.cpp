@@ -33,13 +33,18 @@ void MadgwickAHRS::printYawPitchRoll(void)
 
 void MadgwickAHRS::getYawPitchRoll(float* yaw, float* pitch, float* roll )
 {
+	*yaw = _yaw;
+	*pitch = _pitch;
+	*roll = _roll;
+	return;
+
   float gx, gy, gz; // estimated gravity direction
   
   gx = 2 * (_Quaternion[1]*_Quaternion[3] - _Quaternion[0]*_Quaternion[2]);
   gy = 2 * (_Quaternion[0]*_Quaternion[1] + _Quaternion[2]*_Quaternion[3]);
   gz = _Quaternion[0]*_Quaternion[0] - _Quaternion[1]*_Quaternion[1] - _Quaternion[2]*_Quaternion[2] + _Quaternion[3]*_Quaternion[3];
   
-  *yaw = atan2(2 * _Quaternion[1] * _Quaternion[2] - 2 * _Quaternion[0] * _Quaternion[3], 2 * _Quaternion[0]*_Quaternion[0] + 2 * _Quaternion[1] * _Quaternion[1] - 1) * 180/M_PI +180;
+  *yaw = atan2(2 * _Quaternion[1] * _Quaternion[2] - 2 * _Quaternion[0] * _Quaternion[3], 2 * _Quaternion[0]*_Quaternion[0] + 2 * _Quaternion[1] * _Quaternion[1] - 1) * 180/M_PI;
   *pitch = atan(gx / sqrt(gy*gy + gz*gz))  * 180/PI;
   *roll = atan(gy / sqrt(gx*gx + gz*gz))  * 180/PI;
 }
@@ -239,7 +244,7 @@ void MadgwickAHRS::AHRSupdateFreeIMU(float gx, float gy, float gz, float ax, flo
 	float twoKp = (2.0f * 0.5f); // 2 * proportional gain
 	float twoKi = (2.0f * 0.1f); // 2 * integral gain
 	//twoKi = 0; // 2 * integral gain
-	twoKp = 0;
+	//twoKp = 0;
 
 	
 	// Auxiliary variables to avoid repeated arithmetic
@@ -307,11 +312,13 @@ void MadgwickAHRS::AHRSupdateFreeIMU(float gx, float gy, float gz, float ax, flo
 	if(halfex != 0.0f && halfey != 0.0f && halfez != 0.0f) {
 		// Compute and apply integral feedback if enabled
 		if(twoKi > 0.0f) {
+			//std::cout << "integralFBx" << integralFBx << " integralFBy " << integralFBy << " integralFBz " << integralFBz << " gx " << gx << " gy " << gy << " gz " << gz << "\n";
 			integralFBx += twoKi * halfex * samplePeriod;  // integral error scaled by Ki
 			integralFBy += twoKi * halfey * samplePeriod;
 			integralFBz += twoKi * halfez * samplePeriod;
 			
-			std::cout << integralFBx << " " << integralFBy << " " << integralFBz << " " << gx << " " << gy << " " << gz << "\n";
+			//std::cout << " towki " << twoKi << " halfex " << halfex << " halfey " << halfey << " halfez " << halfez << "\n";
+			//std::cout << integralFBx << " " << integralFBy << " " << integralFBz << " " << gx << " " << gy << " " << gz << "\n";
 			gx += integralFBx;  // apply integral feedback
 			gy += integralFBy;
 			gz += integralFBz;
@@ -358,6 +365,7 @@ void MadgwickAHRS::AHRSupdateFreeIMU(float gx, float gy, float gz, float ax, flo
  * @see http://en.wikipedia.org/wiki/Fast_inverse_square_root
 */
 float MadgwickAHRS::invSqrt(float number) {
+/*
   union {
     float f;
     unsigned long int i;
@@ -367,4 +375,88 @@ float MadgwickAHRS::invSqrt(float number) {
   y.i = 0x5f375a86 - (y.i >> 1);
   y.f = y.f * ( 1.5f - ( number * 0.5f * y.f * y.f ) );
   return y.f;
+  */
+  return 1/sqrt(number);
+}
+
+// Rotate Estimated vector(s) with small angle approximation, according to the gyro data
+void MadgwickAHRS::rotateV(Vector *v,float* delta) {
+  Vector v_tmp = *v;
+  v->z -= delta[0]  * v_tmp.x + delta[1] * v_tmp.y;
+  v->x += delta[1]  * v_tmp.z - delta[2]   * v_tmp.y;
+  v->y += delta[1] * v_tmp.z + delta[2]   * v_tmp.x;
+}
+
+//******  advanced users settings *******************
+/* Set the Low Pass Filter factor for ACC
+   Increasing this value would reduce ACC noise (visible in GUI), but would increase ACC lag time
+   Comment this if  you do not want filter at all.
+   unit = n power of 2 */
+// this one is also used for ALT HOLD calculation, should not be changed
+#ifndef ACC_LPF_FACTOR
+  #define ACC_LPF_FACTOR 4 // that means a LPF of 16
+#endif
+
+/* Set the Gyro Weight for Gyro/Acc complementary filter
+   Increasing this value would reduce and delay Acc influence on the output of the filter*/
+#ifndef GYR_CMPF_FACTOR
+  #define GYR_CMPF_FACTOR 600
+#endif
+
+/* Set the Gyro Weight for Gyro/Magnetometer complementary filter
+   Increasing this value would reduce and delay Magnetometer influence on the output of the filter*/
+#define GYR_CMPFM_FACTOR 250
+
+#define INV_GYR_CMPF_FACTOR   (1.0f / (GYR_CMPF_FACTOR  + 1.0f))
+#define INV_GYR_CMPFM_FACTOR  (1.0f / (GYR_CMPFM_FACTOR + 1.0f))
+
+void MadgwickAHRS::AHRSupdateMultiWiiIMU(float gx, float gy, float gz, float ax, float ay, float az, float mx, float my, float mz,float samplePeriod) 
+{
+	float accMag = 0;
+	float deltaGyroAngle[3];
+
+	static Vector EstG,EstM;
+	
+	std::cout << gx <<" "<<  gy  <<" "<<  gz<<" " << ax<<" "<< ay<<" "<<az<<" "<< mx<<" "<< my<<" "<< mz<<" "<<samplePeriod<<"\n";
+	
+	// Initialization
+	deltaGyroAngle[0] = gx * samplePeriod;
+	deltaGyroAngle[1] = gy * samplePeriod;
+	deltaGyroAngle[2] = gz * samplePeriod;
+
+	accMag = sqrt(ax * ax + ay * ay + az * az);
+
+	rotateV(&EstG,deltaGyroAngle);
+	rotateV(&EstM,deltaGyroAngle);
+
+  // Apply complimentary filter (Gyro drift correction)
+  // If accel magnitude >1.15G or <0.85G and ACC vector outside of the limit range => we neutralize the effect of accelerometers in the angle estimation.
+  // To do that, we just skip filter, as EstV already rotated by Gyro
+	if (  0.85 < accMag && accMag < 1.15 ) {
+		EstG.x = (EstG.x * GYR_CMPF_FACTOR + ax) * INV_GYR_CMPF_FACTOR;
+		EstG.y = (EstG.y * GYR_CMPF_FACTOR + ay) * INV_GYR_CMPF_FACTOR;
+		EstG.z = (EstG.z * GYR_CMPF_FACTOR + az) * INV_GYR_CMPF_FACTOR;
+	}
+	
+	EstM.x = (EstM.x * GYR_CMPFM_FACTOR + mx) * INV_GYR_CMPFM_FACTOR;
+	EstM.y = (EstM.y * GYR_CMPFM_FACTOR + my) * INV_GYR_CMPFM_FACTOR;
+	EstM.z = (EstM.z * GYR_CMPFM_FACTOR + mz) * INV_GYR_CMPFM_FACTOR;
+	
+	//std::cout << "EstG : " << EstG.x << " " << EstG.y << " " << EstG.z << "\n";
+	//std::cout << "Acc " << ax << " " << ay << " " << az << "\n";
+	//std::cout << "EstM : " << EstM.x << " " << EstM.y << " " << EstM.z << "\n";
+	//std::cout << "Mag : " << mx << " " << my << " " << mz << "\n";
+	  
+	// Attitude of the estimated vector
+	float sqGX = EstG.x * EstG.x;
+	float sqGY = EstG.y * EstG.y;
+	float sqGZ = EstG.z * EstG.z;
+	float sqGX_sqGZ = sqGX + sqGZ;
+	float invmagXZ  = 1/sqrt(sqGX_sqGZ);
+	float invG = 1/sqrt(sqGX_sqGZ + sqGY);
+	_roll  = atan2(EstG.x , EstG.z) * 180/M_PI;
+	_pitch = atan2(EstG.y , invmagXZ*sqGX_sqGZ) * 180/M_PI;
+
+    _yaw = atan2(EstM.z * EstG.x - EstM.x * EstG.z , EstM.y * invG * sqGX_sqGZ  - (EstM.x * EstG.x + EstM.z * EstG.z) * invG * EstG.y ) * 180/M_PI; 
+	std::cout << "roll pitch yaw " << _roll << " " << _pitch << " " << _yaw << "\n";
 }
