@@ -24,6 +24,7 @@ INCLUDEPATH += Compass
 
 # Input
 SOURCES += piuwQt.cpp
+HEADERS += piuwQt.h
 SOURCES += glue/linux_glue.c
 HEADERS += glue/linux_glue.h
 SOURCES += MS5803_14BA/MS5803_14BA.cpp

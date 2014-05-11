@@ -4,39 +4,41 @@
 #include <QLabel>
 #include <QTime>
 #include <QTimer>
+#include <QKeyEvent>
 #include "MS5803_14BA.h"
 #include "mpu9150.h"
 #include "RTIMULib.h"
 
-class MainScreen : public QWidget
-{
-	public:
-		MainScreen(QWidget *parent = 0);
-		void timerEvent(QTimerEvent *event);
+#include "piuwQt.h"
+
+void MainScreen::updateIMU() {
+	float yaw,pitch,roll;
+	QString tmpString;
+	
+	if (!_imu->IMURead()) {
+		return;
+	}
+    RTIMU_DATA imuData = _imu->getIMUData();
+	
+	yaw = imuData.fusionPose.z() * RTMATH_RAD_TO_DEGREE;
+	if (yaw < 0) {
+		yaw += 360;
+	}
+	tmpString.setNum(yaw,'f',0);
+	yawValue->setText(tmpString);
+}
+
+//update depth/T°
+void MainScreen::updateDepthSensor() {
+	QString tmpString;
 		
-	private :
-		QHBoxLayout *hbox; //main layout
-		QVBoxLayout *leftCol; //left col layout
-		QLabel *yawLabel;
-		QLabel *yawValue;
-		QLabel *depthLabel;
-		QLabel *depthValue;
-		QLabel *tempLabel;
-		QLabel *tempValue;
-		QVBoxLayout *rightCol; // right col layout
-		QLabel *nbStationsLabel;
-		QLabel *nbStationsValue;
-		QLabel *distLabel;
-		QLabel *distValue;
-		QLabel *timeLabel;
-		QLabel *timeValue;
-		
-		QTimer *timer;
-		int timerId;
-		MS5803_14BA profsensor;
-		//MPU9150AHRS mpu;
-		RTIMU *imu;
-};
+	profsensor.updateData();
+	tmpString.setNum(profsensor.getTemperature(),'f',1);
+	tempValue->setText(tmpString);
+	tmpString.setNum(profsensor.getPressure(),'f',1);
+	depthValue->setText(tmpString);
+}
+
 
 MainScreen::MainScreen(QWidget *parent)
     : QWidget(parent)
@@ -93,57 +95,69 @@ MainScreen::MainScreen(QWidget *parent)
 	QString stime = qtime.toString(Qt::TextDate);
 	timeValue = new QLabel(stime, this);
 	rightCol->addWidget(timeValue,1, Qt::AlignCenter);
- 
+	
+	////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////
+	dist = 0;
+	nbStations = 0;
+	
 	//Initialize IMU 
 	RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
-    imu = RTIMU::createIMU(settings);
-	if ((imu == NULL) || (imu->IMUType() == RTIMU_TYPE_NULL)) {
+    _imu = RTIMU::createIMU(settings);
+	if ((_imu == NULL) || (_imu->IMUType() == RTIMU_TYPE_NULL)) {
         printf("No IMU found\n");
         exit(1);
     }
-   //  set up IMU
-    imu->IMUInit();
- 
-    timerId = startTimer(10);
+    _imu->IMUInit();
+	
+	//Launch IMU refresh timer
+    imuTimer = new QTimer(this);
+    connect(imuTimer, SIGNAL(timeout()), this, SLOT(updateIMU()));
+    imuTimer->start(10);
+	
+	//Launch Depth Sensor refresh timer
+    depthSensorTimer = new QTimer(this);
+    connect(depthSensorTimer, SIGNAL(timeout()), this, SLOT(updateDepthSensor()));
+    depthSensorTimer->start(100);
+	
+	//Launch clock refresh timer
+    clockTimer = new QTimer(this);
+    connect(clockTimer, SIGNAL(timeout()), this, SLOT(updateClock()));
+    clockTimer->start(1000);
 }
 
-void MainScreen::timerEvent(QTimerEvent *event){
+void MainScreen::keyPressEvent(QKeyEvent *event)
+{
 	QString tmpString;
-	float yaw,pitch,roll;
 	
-	//update time
+    if(event->key() == Qt::Key_Plus)
+    {
+		dist += 0.1;
+		tmpString.setNum(dist,'f',1);
+        distValue->setText(tmpString);
+    }
+    if(event->key() == Qt::Key_Minus)
+    {
+		dist -= 0.1;
+		tmpString.setNum(dist,'f',1);
+        distValue->setText(tmpString);
+    }
+    if((event->key() == Qt::Key_Return) || (event->key() == Qt::Key_Enter))
+    {
+		nbStations += 1;
+		tmpString.setNum(nbStations);
+        nbStationsValue->setText(tmpString);
+    }
+}
+
+void MainScreen::updateClock(void){
+	QString tmpString;
+	
+	//update clock
 	QTime qtime = QTime::currentTime();
 	QString stime = qtime.toString(Qt::TextDate);
 	timeValue->setText(stime);
 	
-	//update depth/T°
-	profsensor.updateData();
-	
-	tmpString.setNum(profsensor.getTemperature(),'f',1);
-	tempValue->setText(tmpString);
-	tmpString.setNum(profsensor.getPressure(),'f',1);
-	depthValue->setText(tmpString);
-	
-	//update mpu
-	/*
-	mpu.updateData();
-	mpu.getYawPitchRoll(&yaw,&pitch,&roll);
-	*/
-	
-	if (!imu->IMURead()) {
-		return;
-	}
-    RTIMU_DATA imuData = imu->getIMUData();
-	
-	yaw = imuData.fusionPose.z() * RTMATH_RAD_TO_DEGREE;
-	if (yaw < 0) {
-		yaw += 360;
-	}
-	tmpString.setNum(yaw,'f',0);
-	yawValue->setText(tmpString);
-	
-	//tmpString.setNum(mpu.getCompassHeading(),'f',1);
-	//compassValue->setText(tmpString);
 }
 
 int main(int argc, char *argv[])
