@@ -6,7 +6,6 @@
 #include <QTimer>
 #include <QKeyEvent>
 #include "MS5803_14BA.h"
-#include "mpu9150.h"
 #include "RTIMULib.h"
 
 class MainScreen : public QWidget
@@ -43,9 +42,10 @@ Q_OBJECT
 		///////////////////////////
 		QTimer *timer;
 		int timerId;
+#ifndef NOSENSOR
 		MS5803_14BA profsensor;
-		//MPU9150AHRS mpu;
 		RTIMU *_imu;
+#endif
 		float dist;
 		int nbStations;
 		

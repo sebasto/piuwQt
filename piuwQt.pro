@@ -6,9 +6,10 @@ TEMPLATE = app
 TARGET = 
 
 # defines for mpu915 drivers
-QMAKE_CFLAGS += -DEMPL_TARGET_LINUX
+#QMAKE_CFLAGS += -DEMPL_TARGET_LINUX
 QMAKE_CFLAGS += -DMPU9150
-#QMAKE_CCFLAGS += -DDEBUG
+QMAKE_CCFLAGS += -DDEBUG
+QMAKE_CXXFLAGS += -DNOSENSOR
 
 DESTDIR = Output
 OBJECTS_DIR += objects 
@@ -17,10 +18,6 @@ DEPENDPATH += .
 INCLUDEPATH += .
 INCLUDEPATH += glue
 INCLUDEPATH += MS5803_14BA
-INCLUDEPATH += MPU9150
-INCLUDEPATH += AHRS
-INCLUDEPATH += eMPL
-INCLUDEPATH += Compass
 
 # Input
 SOURCES += piuwQt.cpp
@@ -29,16 +26,5 @@ SOURCES += glue/linux_glue.c
 HEADERS += glue/linux_glue.h
 SOURCES += MS5803_14BA/MS5803_14BA.cpp
 HEADERS += MS5803_14BA/MS5803_14BA.h
-SOURCES += MPU9150/mpu9150.cpp
-HEADERS += MPU9150/mpu9150.h
-SOURCES += AHRS/AHRS.cpp
-HEADERS += AHRS/AHRS.h
-SOURCES += Compass/Compass.cpp
-HEADERS += Compass/Compass.h
-SOURCES += eMPL/inv_mpu.c
-HEADERS += eMPL/inv_mpu.h
-SOURCES += eMPL/inv_mpu_dmp_motion_driver.c
-HEADERS += eMPL/inv_mpu_dmp_motion_driver.h
-
 
 include(RTIMULib/RTIMULib.pri)
