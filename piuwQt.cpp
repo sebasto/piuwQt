@@ -5,9 +5,6 @@
 #include <QTime>
 #include <QTimer>
 #include <QKeyEvent>
-#include "MS5803_14BA.h"
-#include "RTIMULib.h"
-
 #include "piuwQt.h"
 
 void MainScreen::updateIMU() {
@@ -46,6 +43,31 @@ void MainScreen::updateDepthSensor() {
 #endif
 }
 
+void MainScreen::checkButtons() {
+	string inputstate;
+	QString tmpString;
+
+	_button1->getval_gpio(inputstate);
+	if (inputstate == "1") {
+		_dist += 0.1;
+		tmpString.setNum(_dist,'f',1);
+        distValue->setText(tmpString);
+	}
+	
+	_button2->getval_gpio(inputstate);
+	if (inputstate == "1") {
+		_dist -= 0.1;
+		tmpString.setNum(_dist,'f',1);
+        distValue->setText(tmpString);
+	}
+	
+	_button3->getval_gpio(inputstate);
+	if (inputstate == "1") {
+		_nbStations += 1;
+		tmpString.setNum(_nbStations);
+        nbStationsValue->setText(tmpString);
+	}
+}
 
 MainScreen::MainScreen(QWidget *parent)
     : QWidget(parent)
@@ -105,8 +127,26 @@ MainScreen::MainScreen(QWidget *parent)
 	
 	////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////
-	dist = 0;
-	nbStations = 0;
+	_dist = 0;
+	_nbStations = 0;
+	//Initialize Buttons
+	_button1 = new GPIOClass("22");
+	_button1->export_gpio();
+	_button1->setdir_gpio("in");
+	
+	_button2 = new GPIOClass("27");
+	_button2->export_gpio();
+	_button2->setdir_gpio("in");
+	
+	_button3 = new GPIOClass("18");
+	_button3->export_gpio();
+	_button3->setdir_gpio("in");
+	
+	
+	//Launch button check timer
+    buttonCheckTimer = new QTimer(this);
+    connect(buttonCheckTimer, SIGNAL(timeout()), this, SLOT(checkButtons()));
+    buttonCheckTimer->start(100);
 	
 	//Initialize IMU 
 	RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
@@ -140,20 +180,20 @@ void MainScreen::keyPressEvent(QKeyEvent *event)
 	
     if(event->key() == Qt::Key_Plus)
     {
-		dist += 0.1;
-		tmpString.setNum(dist,'f',1);
+		_dist += 0.1;
+		tmpString.setNum(_dist,'f',1);
         distValue->setText(tmpString);
     }
     if(event->key() == Qt::Key_Minus)
     {
-		dist -= 0.1;
-		tmpString.setNum(dist,'f',1);
+		_dist -= 0.1;
+		tmpString.setNum(_dist,'f',1);
         distValue->setText(tmpString);
     }
     if((event->key() == Qt::Key_Return) || (event->key() == Qt::Key_Enter))
     {
-		nbStations += 1;
-		tmpString.setNum(nbStations);
+		_nbStations += 1;
+		tmpString.setNum(_nbStations);
         nbStationsValue->setText(tmpString);
     }
 }

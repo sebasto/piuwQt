@@ -18,7 +18,7 @@ DEPENDPATH += .
 INCLUDEPATH += .
 INCLUDEPATH += glue
 INCLUDEPATH += MS5803_14BA
-INCLUDEPATH += GPIOClass
+INCLUDEPATH += GPIOClass  
 
 # Input
 SOURCES += piuwQt.cpp
@@ -27,7 +27,7 @@ SOURCES += glue/linux_glue.c
 HEADERS += glue/linux_glue.h
 SOURCES += MS5803_14BA/MS5803_14BA.cpp
 HEADERS += MS5803_14BA/MS5803_14BA.h
-SOURCES += GPIOClass.cpp
-HEADERS += GPIOClass.h
+SOURCES += GPIOClass/GPIOClass.cpp
+HEADERS += GPIOClass/GPIOClass.h
 
 include(RTIMULib/RTIMULib.pri)

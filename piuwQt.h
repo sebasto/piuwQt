@@ -7,6 +7,7 @@
 #include <QKeyEvent>
 #include "MS5803_14BA.h"
 #include "RTIMULib.h"
+#include "GPIOClass.h"
 
 class MainScreen : public QWidget
 {
@@ -34,6 +35,7 @@ Q_OBJECT
 		QLabel *timeLabel;
 		QLabel *timeValue;
 		
+		QTimer *buttonCheckTimer;
 		QTimer *imuTimer;
 		QTimer *depthSensorTimer;
 		QTimer *clockTimer;
@@ -46,11 +48,15 @@ Q_OBJECT
 		MS5803_14BA profsensor;
 		RTIMU *_imu;
 #endif
-		float dist;
-		int nbStations;
+		float _dist;
+		int _nbStations;
+		GPIOClass* _button1;
+		GPIOClass* _button2;
+		GPIOClass* _button3;
 		
 	private slots:
 		void updateIMU();	
 		void updateDepthSensor();	
 		void updateClock();
+		void checkButtons();
 };
