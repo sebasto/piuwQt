@@ -7,9 +7,48 @@
 #include <QKeyEvent>
 #include "piuwQt.h"
 
-void MainScreen::updateIMU() {
-	float yaw,pitch,roll;
+//separate timer to update screen info
+void MainScreen::updateScreen() {
+	static float yaw = 0;
+	static float temperature = 0;
+	static float depth = 0;
+	static float dist = 0;
+	static int nbStations = 0;
+	
 	QString tmpString;
+	
+	if (yaw != _yaw) {
+		yaw = _yaw;
+		tmpString.setNum(yaw,'f',0);
+		yawValue->setText(tmpString);
+	}
+	
+	if (temperature != _temperature) {
+		temperature = _temperature;
+		tmpString.setNum(temperature,'f',1);
+		tempValue->setText(tmpString);
+	}
+	
+	if (depth != _depth) {
+		depth = _depth;
+		tmpString.setNum(depth,'f',1);
+		depthValue->setText(tmpString);
+	}
+	
+	if (dist != _dist) {
+		dist = _dist;
+		tmpString.setNum(dist,'f',1);
+        distValue->setText(tmpString);
+	}
+	
+	if (nbStations != _nbStations) {	
+		nbStations = _nbStations;
+		tmpString.setNum(nbStations);
+        nbStationsValue->setText(tmpString);
+	}
+}
+
+void MainScreen::updateIMU() {
 
 #ifndef NOSENSOR	
 	if (!_imu->IMURead()) {
@@ -17,29 +56,26 @@ void MainScreen::updateIMU() {
 	}
     RTIMU_DATA imuData = _imu->getIMUData();
 	
-	yaw = imuData.fusionPose.z() * RTMATH_RAD_TO_DEGREE;
-	if (yaw < 0) {
-		yaw += 360;
+	_yaw = imuData.fusionPose.z() * RTMATH_RAD_TO_DEGREE;
+	if (_yaw < 0) {
+		_yaw += 360;
 	}
 #else
-	yaw = 12;
-	tmpString.setNum(yaw,'f',0);
-	yawValue->setText(tmpString);
+	_yaw = 12;
 #endif
+	
 }
 
 //update depth/T°
 void MainScreen::updateDepthSensor() {
-	QString tmpString;
+	
 #ifndef NOSENSOR
-	profsensor.updateData();
-	tmpString.setNum(profsensor.getTemperature(),'f',1);
-	tempValue->setText(tmpString);
-	tmpString.setNum(profsensor.getPressure(),'f',1);
-	depthValue->setText(tmpString);
+	_profsensor.updateData();
+	_temperature = _profsensor.getTemperature();
+	_depth = _profsensor.getPressure();
 #else
-	tempValue->setText("12");
-	depthValue->setText("120");
+	_temperature = 12;
+	_depth = 120;
 #endif
 }
 
@@ -50,22 +86,16 @@ void MainScreen::checkButtons() {
 	_button1->getval_gpio(inputstate);
 	if (inputstate == "1") {
 		_dist += 0.1;
-		tmpString.setNum(_dist,'f',1);
-        distValue->setText(tmpString);
 	}
 	
 	_button2->getval_gpio(inputstate);
 	if (inputstate == "1") {
 		_dist -= 0.1;
-		tmpString.setNum(_dist,'f',1);
-        distValue->setText(tmpString);
 	}
 	
 	_button3->getval_gpio(inputstate);
 	if (inputstate == "1") {
-		_nbStations += 1;
-		tmpString.setNum(_nbStations);
-        nbStationsValue->setText(tmpString);
+		//_nbStations += 1;
 	}
 }
 
@@ -148,9 +178,10 @@ MainScreen::MainScreen(QWidget *parent)
     connect(buttonCheckTimer, SIGNAL(timeout()), this, SLOT(checkButtons()));
     buttonCheckTimer->start(100);
 	
+#ifndef NOSENSOR
 	//Initialize IMU 
 	RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
-#ifndef NOSENSOR
+	
 	_imu = RTIMU::createIMU(settings);
 	if ((_imu == NULL) || (_imu->IMUType() == RTIMU_TYPE_NULL)) {
         printf("No IMU found\n");
@@ -172,6 +203,12 @@ MainScreen::MainScreen(QWidget *parent)
     clockTimer = new QTimer(this);
     connect(clockTimer, SIGNAL(timeout()), this, SLOT(updateClock()));
     clockTimer->start(1000);
+	
+	//Launch screen refresh timer
+    screenRefreshTimer = new QTimer(this);
+    connect(screenRefreshTimer, SIGNAL(timeout()), this, SLOT(updateScreen()));
+    screenRefreshTimer->start(100);
+	
 }
 
 void MainScreen::keyPressEvent(QKeyEvent *event)
@@ -204,8 +241,7 @@ void MainScreen::updateClock(void){
 	//update clock
 	QTime qtime = QTime::currentTime();
 	QString stime = qtime.toString(Qt::TextDate);
-	timeValue->setText(stime);
-	
+	timeValue->setText(stime);	
 }
 
 int main(int argc, char *argv[])

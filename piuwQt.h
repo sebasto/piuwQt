@@ -39,15 +39,19 @@ Q_OBJECT
 		QTimer *imuTimer;
 		QTimer *depthSensorTimer;
 		QTimer *clockTimer;
+		QTimer *screenRefreshTimer;
 		
 		///////////////////////////
 		///////////////////////////
 		QTimer *timer;
 		int timerId;
 #ifndef NOSENSOR
-		MS5803_14BA profsensor;
+		MS5803_14BA _profsensor;
 		RTIMU *_imu;
 #endif
+		float _yaw;
+		float _depth;
+		float _temperature;
 		float _dist;
 		int _nbStations;
 		GPIOClass* _button1;
@@ -59,4 +63,5 @@ Q_OBJECT
 		void updateDepthSensor();	
 		void updateClock();
 		void checkButtons();
+		void updateScreen();
 };
