@@ -5,6 +5,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QKeyEvent>
+#include <QTextStream>
 #include "MS5803_14BA.h"
 #include "RTIMULib.h"
 #include "GPIOClass.h"
@@ -34,11 +35,14 @@ Q_OBJECT
 		QLabel *distValue;
 		QLabel *timeLabel;
 		QLabel *timeValue;
+		QLabel *batteryLabel;
+		QLabel *batteryValue;
 		
 		QTimer *buttonCheckTimer;
 		QTimer *imuTimer;
 		QTimer *depthSensorTimer;
 		QTimer *clockTimer;
+		QTimer *batteryStatusTimer;
 		QTimer *screenRefreshTimer;
 		
 		///////////////////////////
@@ -54,6 +58,9 @@ Q_OBJECT
 		float _temperature;
 		float _dist;
 		int _nbStations;
+		int _batteryStatus;
+		int _batteryCharging;
+		
 		GPIOClass* _button1;
 		GPIOClass* _button2;
 		GPIOClass* _button3;
@@ -62,6 +69,7 @@ Q_OBJECT
 		void updateIMU();	
 		void updateDepthSensor();	
 		void updateClock();
+		void updateBatteryStatus();
 		void checkButtons();
 		void updateScreen();
 };

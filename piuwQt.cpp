@@ -102,6 +102,9 @@ void MainScreen::checkButtons() {
 MainScreen::MainScreen(QWidget *parent)
     : QWidget(parent)
 {
+	//Display fullscreen
+	QTimer::singleShot(1000, this, SLOT(showFullScreen()));
+	
 	//create parent horizontal box
 	hbox = new QHBoxLayout(this);
 	hbox->setSpacing(1);
@@ -155,6 +158,13 @@ MainScreen::MainScreen(QWidget *parent)
 	timeValue = new QLabel(stime, this);
 	rightCol->addWidget(timeValue,1, Qt::AlignCenter);
 	
+	
+	//Battery status
+	batteryLabel = new QLabel("Battery status :", this);
+	rightCol->addWidget(batteryLabel,1, Qt::AlignCenter);
+	batteryValue = new QLabel("0", this);
+	rightCol->addWidget(batteryValue,1, Qt::AlignCenter);
+	
 	////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////
 	_dist = 0;
@@ -204,6 +214,11 @@ MainScreen::MainScreen(QWidget *parent)
     connect(clockTimer, SIGNAL(timeout()), this, SLOT(updateClock()));
     clockTimer->start(1000);
 	
+	//Launch batteryStatus timer
+    batteryStatusTimer = new QTimer(this);
+    connect(batteryStatusTimer, SIGNAL(timeout()), this, SLOT(updateBatteryStatus()));
+    batteryStatusTimer->start(1000);
+	
 	//Launch screen refresh timer
     screenRefreshTimer = new QTimer(this);
     connect(screenRefreshTimer, SIGNAL(timeout()), this, SLOT(updateScreen()));
@@ -242,6 +257,32 @@ void MainScreen::updateClock(void){
 	QTime qtime = QTime::currentTime();
 	QString stime = qtime.toString(Qt::TextDate);
 	timeValue->setText(stime);	
+}
+
+
+void MainScreen::updateBatteryStatus(void){
+    QString batteryStatus;
+	QString line;
+	
+	QFile file("/sys/class/power_supply/battery/capacity");
+	file.open(QIODevice::ReadOnly | QIODevice::Text);
+	QTextStream in(&file);
+	line = in.readLine();
+	file.close();
+	
+	batteryStatus = line + "%";
+	
+	QFile file2("/sys/class/power_supply/usbpwr/online");
+	file2.open(QIODevice::ReadOnly | QIODevice::Text);
+	QTextStream in2(&file2);
+	line = in2.readLine();
+	file2.close();
+	if (line == "1") {
+		batteryStatus += " (charging)";
+	}
+	
+	//update battery status
+	batteryValue->setText(batteryStatus);	
 }
 
 int main(int argc, char *argv[])
