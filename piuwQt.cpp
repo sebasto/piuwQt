@@ -7,6 +7,149 @@
 #include <QKeyEvent>
 #include "piuwQt.h"
 
+openXmlTopoFile::openXmlTopoFile() {
+	QString tmpString;
+	QString str;
+	
+	int counter = 0;
+	int flag = 0;
+	
+	// open XML file for writing
+	while (flag ==0) {
+		tmpString = "topo_";
+		str.setNum(counter);
+		tmpString += str;
+		tmpString += ".xml";
+		_openXmlFile.setFileName(tmpString);
+		
+		if (_openXmlFile.exists()) {
+			counter++;
+		}
+		else {
+			if (!_openXmlFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+				printf("An error occured while trying to open Xml file for writing");
+				exit(-1);
+			}
+			flag = 1;
+		}
+	  }
+}
+
+void openXmlTopoFile::write(float distance, float cap, float profondeur) {
+    static int countMesure = 1;
+	QTextStream openXmlFileTextStream(&_openXmlFile);
+	
+    if (countMesure == 1) {
+		openXmlFileTextStream << "<?xml version=\"1.0\" standalone=\"yes\"?>" << endl;
+		openXmlFileTextStream << "<DataSetOAS xmlns=\"https://www.arianesline.com/XML/DataSetOAS.xsd\">" << endl;
+		openXmlFileTextStream << "<xs:schema id=\"DataSetOAS \" targetNamespace=  \"https://www.arianesline.com/XML/DataSetOAS.xsd\" xmlns:mstns=\"https://www.arianesline.com/XML/DataSetOAS.xsd\" xmlns=\"https://www.arianesline.com/XML/DataSetOAS.xsd\" xmlns:xs=\"http://www.w3.org/2001/XMLSchema\" xmlns:msdata=\"urn:schemas-microsoft-com:xml-msdata\" attributeFormDefault=\"qualified\" elementFormDefault=\"qualified\">" << endl;
+		openXmlFileTextStream << "    <xs:element name=\"DataSetOAS\" msdata:IsDataSet=\"true\" msdata:UseCurrentLocale=\"true\">" << endl;
+		openXmlFileTextStream << "      <xs:complexType>" << endl;
+		openXmlFileTextStream << "        <xs:choice minOccurs=\"0\" maxOccurs=\"unbounded\">" << endl;
+		openXmlFileTextStream << "          <xs:element name=\"SurveyData\">" << endl;
+		openXmlFileTextStream << "            <xs:complexType>" << endl;
+		openXmlFileTextStream << "              <xs:sequence>" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"ID\" msdata:AutoIncrementSeed=\"-1\" msdata:AutoIncrementStep=\"-1\" type=\"xs:int\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Name\" type=\"xs:string\" default=\"&quot;&quot;\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"FromID\" type=\"xs:int\" default=\"-1\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"ClosureToID\" type=\"xs:int\" default=\"-1\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Section\" type=\"xs:string\" default=\"&quot;Main Section&quot;\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Type\" type=\"xs:string\" default=\"&quot;Real&quot;\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Explorer\" type=\"xs:string\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Date\" type=\"xs:dateTime\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Color\" type=\"xs:string\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Length\" type=\"xs:double\" default=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Azimut\" type=\"xs:double\" default=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Inclination\" type=\"xs:double\" default=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Depth\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Left\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Right\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Down\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Up\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"DepthIn\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Longitude\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Latitude\" type=\"xs:double\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Comment\" type=\"xs:string\" minOccurs=\"0\" />" << endl;
+		openXmlFileTextStream << "              </xs:sequence>" << endl;
+		openXmlFileTextStream << "            </xs:complexType>" << endl;
+		openXmlFileTextStream << "          </xs:element>" << endl;
+		openXmlFileTextStream << "          <xs:element name=\"Infos\">" << endl;
+		openXmlFileTextStream << "            <xs:complexType>" << endl;
+		openXmlFileTextStream << "              <xs:sequence>" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Key\" type=\"xs:string\" />" << endl;
+		openXmlFileTextStream << "                <xs:element name=\"Value\" type=\"xs:string\" default=\"&quot;&quot;\" />" << endl;
+		openXmlFileTextStream << "              </xs:sequence>" << endl;
+		openXmlFileTextStream << "            </xs:complexType>" << endl;
+		openXmlFileTextStream << "          </xs:element>" << endl;
+		openXmlFileTextStream << "        </xs:choice>" << endl;
+		openXmlFileTextStream << "      </xs:complexType>" << endl;
+		openXmlFileTextStream << "      <xs:unique name=\"Constraint1\">" << endl;
+		openXmlFileTextStream << "        <xs:selector xpath=\".//mstns:SurveyData\" />" << endl;
+		openXmlFileTextStream << "        <xs:field xpath=\"mstns:ID\" />" << endl;
+		openXmlFileTextStream << "      </xs:unique>" << endl;
+		openXmlFileTextStream << "      <xs:unique name=\"Infos_Constraint1\" msdata:ConstraintName=\"Constraint1\" msdata:PrimaryKey=\"true\">" << endl;
+		openXmlFileTextStream << "        <xs:selector xpath=\".//mstns:Infos\" />" << endl;
+		openXmlFileTextStream << "        <xs:field xpath=\"mstns:Key\" />" << endl;
+		openXmlFileTextStream << "      </xs:unique>" << endl;
+		openXmlFileTextStream << "    </xs:element>" << endl;
+		openXmlFileTextStream << "  </xs:schema>" << endl;
+		openXmlFileTextStream << "    <Infos>" << endl;
+		openXmlFileTextStream << "      <Key>Project Name</Key>" << endl;
+		openXmlFileTextStream << "      <Value>ProjectName</Value>" << endl;
+		openXmlFileTextStream << "    </Infos>" << endl;
+		openXmlFileTextStream << "    <Infos>" << endl;
+		openXmlFileTextStream << "      <Key>Unit</Key>" << endl;
+		openXmlFileTextStream << "      <Value>m</Value>" << endl;
+		openXmlFileTextStream << "    </Infos>" << endl;
+		openXmlFileTextStream << "      <SurveyData>" << endl;
+		openXmlFileTextStream << "        <ID>0</ID>" << endl;
+		openXmlFileTextStream << "        <Name>FS00</Name>" << endl;
+		openXmlFileTextStream << "        <FromID>-1</FromID>" << endl;
+		openXmlFileTextStream << "        <ClosureToID>-1</ClosureToID>" << endl;
+		openXmlFileTextStream << "        <Section>FirstSection</Section>" << endl;
+		openXmlFileTextStream << "        <Type>Start</Type>" << endl;
+		openXmlFileTextStream << "        <Explorer>Ardutopo</Explorer>" << endl;
+		openXmlFileTextStream << "        <Date>2013-09-21T23:18:41.0381791+02:00</Date>" << endl;
+		openXmlFileTextStream << "        <Color>Red</Color>" << endl;
+		openXmlFileTextStream << "        <Length>0</Length>" << endl;
+		openXmlFileTextStream << "        <Azimut>0</Azimut>" << endl;
+		openXmlFileTextStream << "        <Inclination>0</Inclination>" << endl;
+		openXmlFileTextStream << "        <Depth>0</Depth>" << endl;
+		openXmlFileTextStream << "        <Left>0.1</Left>" << endl;
+		openXmlFileTextStream << "        <Right>0.1</Right>" << endl;
+		openXmlFileTextStream << "        <Down>0.1</Down>" << endl;
+		openXmlFileTextStream << "        <Up>0.1</Up>" << endl;
+		openXmlFileTextStream << "        <DepthIn>0</DepthIn>" << endl;
+		openXmlFileTextStream << "        <Longitude>0</Longitude>" << endl;
+		openXmlFileTextStream << "        <Latitude>0</Latitude>" << endl;
+		openXmlFileTextStream << "        <Comment>GPS Lat:20.634687 Long: -87.084124</Comment>" << endl;
+		openXmlFileTextStream << "      </SurveyData>" << endl;
+    }
+	openXmlFileTextStream << "      <SurveyData>" << endl;
+	openXmlFileTextStream << "    <ID>" << countMesure << "</ID>" << endl;
+	openXmlFileTextStream << "    <Name>FS" << countMesure << "</Name>" << endl;
+	openXmlFileTextStream << "    <FromID>" << countMesure - 1 << "</FromID>" << endl;
+	openXmlFileTextStream << "    <ClosureToID>-1</ClosureToID>" << endl;
+	openXmlFileTextStream << "    <Section>FirstSection</Section>" << endl;
+	openXmlFileTextStream << "    <Type>Real</Type>" << endl;
+	openXmlFileTextStream << "    <Explorer>Ardutopo</Explorer>" << endl;
+	openXmlFileTextStream << "    <Date>2013-09-21T23:18:41.0381791+02:00</Date>" << endl;
+	openXmlFileTextStream << "    <Color>#FFFF0000</Color>" << endl;
+	openXmlFileTextStream << "    <Length>" << distance << "</Length>" << endl;
+	openXmlFileTextStream << "    <Azimut>" << cap << "</Azimut>" << endl;
+	openXmlFileTextStream << "    <Inclination>" << 0 << "</Inclination>" << endl;
+	openXmlFileTextStream << "    <Depth>" << profondeur << "</Depth>" << endl;
+	openXmlFileTextStream << "    <Left>0.1</Left>" << endl;
+	openXmlFileTextStream << "    <Right>0.1</Right>" << endl;
+	openXmlFileTextStream << "    <Down>0.1</Down>" << endl;
+	openXmlFileTextStream << "    <Up>0.1</Up>" << endl;
+	openXmlFileTextStream << "    <DepthIn>-1</DepthIn>" << endl;
+	openXmlFileTextStream << "    <Longitude>0</Longitude>" << endl;
+	openXmlFileTextStream << "    <Latitude>0</Latitude>" << endl;
+	openXmlFileTextStream << "    <Comment />" << endl;
+	openXmlFileTextStream << "  </SurveyData>" << endl;
+}
+
 //separate timer to update screen info
 void MainScreen::updateScreen() {
 	static float yaw = 0;
@@ -82,7 +225,7 @@ void MainScreen::updateDepthSensor() {
 void MainScreen::checkButtons() {
 	string inputstate;
 	QString tmpString;
-
+/*
 	_button1->getval_gpio(inputstate);
 	if (inputstate == "1") {
 		_dist += 0.1;
@@ -95,13 +238,14 @@ void MainScreen::checkButtons() {
 	
 	_button3->getval_gpio(inputstate);
 	if (inputstate == "1") {
-		//_nbStations += 1;
+		_nbStations += 1;
 	}
+*/
 }
 
 MainScreen::MainScreen(QWidget *parent)
     : QWidget(parent)
-{
+{	
 	//create parent horizontal box
 	hbox = new QHBoxLayout(this);
 	hbox->setSpacing(1);
@@ -211,6 +355,7 @@ MainScreen::MainScreen(QWidget *parent)
 	
 }
 
+
 void MainScreen::keyPressEvent(QKeyEvent *event)
 {
 	QString tmpString;
@@ -232,6 +377,7 @@ void MainScreen::keyPressEvent(QKeyEvent *event)
 		_nbStations += 1;
 		tmpString.setNum(_nbStations);
         nbStationsValue->setText(tmpString);
+		_topoFile.write(_dist,_yaw,_depth);
     }
 }
 

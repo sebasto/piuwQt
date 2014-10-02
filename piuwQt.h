@@ -5,9 +5,20 @@
 #include <QTime>
 #include <QTimer>
 #include <QKeyEvent>
+#include <QFile>
+#include <QTextStream>
 #include "MS5803_14BA.h"
 #include "RTIMULib.h"
 #include "GPIOClass.h"
+
+class openXmlTopoFile{
+	public : 
+		openXmlTopoFile();
+		void write(float distance, float cap, float profondeur);
+		
+	private :
+		QFile _openXmlFile;
+};
 
 class MainScreen : public QWidget
 {
@@ -54,9 +65,12 @@ Q_OBJECT
 		float _temperature;
 		float _dist;
 		int _nbStations;
+		openXmlTopoFile _topoFile;
+		
 		GPIOClass* _button1;
 		GPIOClass* _button2;
 		GPIOClass* _button3;
+		
 		
 	private slots:
 		void updateIMU();	
