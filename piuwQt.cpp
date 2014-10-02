@@ -245,14 +245,9 @@ void MainScreen::checkButtons() {
 
 MainScreen::MainScreen(QWidget *parent)
     : QWidget(parent)
-<<<<<<< HEAD
-{	
-=======
 {
 	//Display fullscreen
 	QTimer::singleShot(1000, this, SLOT(showFullScreen()));
-	
->>>>>>> a69c72cb782ceb4ad0876b3cf906ee0ad36f8bb4
 	//create parent horizontal box
 	hbox = new QHBoxLayout(this);
 	hbox->setSpacing(1);

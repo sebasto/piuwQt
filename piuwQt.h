@@ -5,10 +5,7 @@
 #include <QTime>
 #include <QTimer>
 #include <QKeyEvent>
-<<<<<<< HEAD
 #include <QFile>
-=======
->>>>>>> a69c72cb782ceb4ad0876b3cf906ee0ad36f8bb4
 #include <QTextStream>
 #include "MS5803_14BA.h"
 #include "RTIMULib.h"
@@ -71,12 +68,9 @@ Q_OBJECT
 		float _temperature;
 		float _dist;
 		int _nbStations;
-<<<<<<< HEAD
 		openXmlTopoFile _topoFile;
-=======
 		int _batteryStatus;
 		int _batteryCharging;
->>>>>>> a69c72cb782ceb4ad0876b3cf906ee0ad36f8bb4
 		
 		GPIOClass* _button1;
 		GPIOClass* _button2;
