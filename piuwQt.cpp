@@ -245,7 +245,13 @@ void MainScreen::checkButtons() {
 
 MainScreen::MainScreen(QWidget *parent)
     : QWidget(parent)
-{
+{		
+	
+    //set font    
+	QFont font;
+	font.setPointSize(16);
+	font.setBold(true);
+
 	//Display fullscreen
 	QTimer::singleShot(1000, this, SLOT(showFullScreen()));
 	//create parent horizontal box
@@ -256,24 +262,30 @@ MainScreen::MainScreen(QWidget *parent)
 	leftCol = new QVBoxLayout();
 	leftCol->setSpacing(1);
 	hbox->addLayout(leftCol);
-
+	
 	//// LEFT COL LABELS ////
 	// AHRS YAW
 	yawLabel = new QLabel("AHRS Yaw :", this);
+	yawLabel->setFont(font);
 	leftCol->addWidget(yawLabel,1, Qt::AlignCenter);
 	yawValue = new QLabel("0", this);
+	yawValue->setFont(font);
 	leftCol->addWidget(yawValue,1, Qt::AlignCenter);
 	
 	//DEPTH
 	depthLabel = new QLabel("Depth :", this);
+	depthLabel->setFont(font);
 	leftCol->addWidget(depthLabel,1, Qt::AlignCenter);
 	depthValue = new QLabel("0", this);
+	depthValue->setFont(font);
 	leftCol->addWidget(depthValue,1, Qt::AlignCenter);
 	
 	//TEMPERATURE
 	tempLabel = new QLabel("T° :", this);
+	tempLabel->setFont(font);
 	leftCol->addWidget(tempLabel,1, Qt::AlignCenter);
 	tempValue = new QLabel("0", this);
+	tempValue->setFont(font);
 	leftCol->addWidget(tempValue,1, Qt::AlignCenter);
 	
 	//// RIGHT COL ////
@@ -283,29 +295,37 @@ MainScreen::MainScreen(QWidget *parent)
 
 	//NBSTATIONS
 	nbStationsLabel = new QLabel("Nb Stations :", this);
+	nbStationsLabel->setFont(font);
 	rightCol->addWidget(nbStationsLabel,1, Qt::AlignCenter);
 	nbStationsValue = new QLabel("0", this);
+	nbStationsValue->setFont(font);
 	rightCol->addWidget(nbStationsValue,1, Qt::AlignCenter);
 	
 	//DIST
 	distLabel = new QLabel("Dist :", this);
+	distLabel->setFont(font);
 	rightCol->addWidget(distLabel,1, Qt::AlignCenter);
 	distValue = new QLabel("0", this);
+	distValue->setFont(font);
 	rightCol->addWidget(distValue,1, Qt::AlignCenter);
 	
 	//TIME
 	timeLabel = new QLabel("Time :", this);
+	timeLabel->setFont(font);
 	rightCol->addWidget(timeLabel,1, Qt::AlignCenter);
 	QTime qtime = QTime::currentTime();
 	QString stime = qtime.toString(Qt::TextDate);
 	timeValue = new QLabel(stime, this);
+	timeValue->setFont(font);
 	rightCol->addWidget(timeValue,1, Qt::AlignCenter);
 	
 	
 	//Battery status
 	batteryLabel = new QLabel("Battery status :", this);
+	batteryLabel->setFont(font);
 	rightCol->addWidget(batteryLabel,1, Qt::AlignCenter);
 	batteryValue = new QLabel("0", this);
+	batteryValue->setFont(font);
 	rightCol->addWidget(batteryValue,1, Qt::AlignCenter);
 	
 	////////////////////////////////////////////////////////////
