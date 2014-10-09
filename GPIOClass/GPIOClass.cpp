@@ -9,19 +9,11 @@ using namespace std;
 GPIOClass::GPIOClass()
 {
 	this->gpionum = "4"; //GPIO4 is default
-	_gpioEventNotifier = NULL;
 }
 
 GPIOClass::GPIOClass(string gnum)
 {
 	this->gpionum = gnum;  //Instatiate GPIOClass object for GPIO pin number "gnum"
-	_gpioEventNotifier = NULL;
-}
-
-GPIOClass::~GPIOClass() {
-	if (_gpioEventNotifier != NULL) {
-		delete (_gpioEventNotifier);
-	}
 }
 
 int GPIOClass::export_gpio()
@@ -79,24 +71,6 @@ int GPIOClass::setedge_gpio(string edge)
 		setedgegpio << edge; //write edge to edge file
 		setedgegpio.close(); // close edge file
 	    return 0;
-}
-
-void GPIOClass::init_gpioEventNotifier(){
-	if (_gpioEventNotifier != NULL) {
-		return;
-	}
-	QString gpio_value_path = QString::fromStdString(this->get_gpiopath());
-	_gpioValueFile.setFileName(gpio_value_path); /* Set up the value file */
-	_gpioValueFile.open(QFile::ReadOnly);
-	_gpioEventNotifier = new QSocketNotifier(_gpioValueFile.handle(), QSocketNotifier::Exception);
-}
-
-void GPIOClass::enable_gpioEventNotifier(){
-	_gpioEventNotifier->setEnabled(true);
-}
-
-QSocketNotifier* GPIOClass::get_gpioEventNotifier(){
-	return (_gpioEventNotifier);
 }
 
 int GPIOClass::setval_gpio(string val)

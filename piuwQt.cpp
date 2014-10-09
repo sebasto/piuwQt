@@ -222,18 +222,47 @@ void MainScreen::updateDepthSensor() {
 #endif
 }
 
-void MainScreen::button1Pressed(){
-	_dist += 0.1;
-}
-
-void MainScreen::button2Pressed(){
-	_dist -= 0.1;
-}
-
-void MainScreen::button3Pressed(){
-	_nbStations += 1;
-	_topoFile.write(_dist,_yaw,_depth);
+void MainScreen::updateButtons(){
+	static int button1flag = 0;
+	static int button2flag = 0;
+	static int button3flag = 0;
 	
+	string val;
+	
+	_button1->getval_gpio(val);
+	
+	//val == 0 when button is pressed (because on internal pullup activated)
+	if (val == "0" && button1flag == 0) {
+		_dist += 0.1;
+		button1flag = 1;
+	}
+	
+	if (val == "1" && button1flag == 1) {
+		button1flag = 0;
+	}
+	
+	
+	_button2->getval_gpio(val);
+	
+	/*
+	if (val.compare("0") && button2flag == 0) {
+		_dist -= 0.1;
+		button2flag = 1;
+	}
+	if (val.compare("1") && button2flag == 1) {
+		button2flag = 0;
+	}
+	
+	_button3->getval_gpio(val);
+	if (val.compare("0") && button3flag == 0) {
+		_nbStations += 1;
+		_topoFile.write(_dist,_yaw,_depth);
+		button3flag = 1;
+	}
+	if (val.compare("1") && button3flag == 1) {
+		button3flag = 0;
+	}
+	*/
 }
 
 MainScreen::MainScreen(QWidget *parent)
@@ -326,30 +355,25 @@ MainScreen::MainScreen(QWidget *parent)
 	_nbStations = 0;
 	
 	//Initialize Buttons
-	_button1 = new GPIOClass("22");
+	// pour que ça marche il faut activer le pullup sur le gpio (gpio -g mode 23 up)
+	_button1 = new GPIOClass("23");
 	_button1->export_gpio();
 	_button1->setdir_gpio("in");
-	_button1->setedge_gpio("both");
-	_button1->init_gpioEventNotifier();
-	_button1->enable_gpioEventNotifier();
-	connect(_button1->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button1Pressed(int)));
 
 	_button2 = new GPIOClass("27");
 	_button2->export_gpio();
 	_button2->setdir_gpio("in");
-	_button2->setedge_gpio("both");
-	_button2->init_gpioEventNotifier();
-	_button2->enable_gpioEventNotifier();
-	connect(_button2->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button2Pressed(int)));
 	
+	/*
 	_button3 = new GPIOClass("18");
 	_button3->export_gpio();
 	_button3->setdir_gpio("in");
 	_button3->setedge_gpio("both");
 	_button3->init_gpioEventNotifier();
 	_button3->enable_gpioEventNotifier();
-	connect(_button3->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button3Pressed(int)));
-		
+	connect(_button3->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button3Pressed()));
+	*/
+	
 #ifndef NOSENSOR
 	//Initialize IMU 
 	RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
@@ -380,6 +404,11 @@ MainScreen::MainScreen(QWidget *parent)
     batteryStatusTimer = new QTimer(this);
     connect(batteryStatusTimer, SIGNAL(timeout()), this, SLOT(updateBatteryStatus()));
     batteryStatusTimer->start(1000);
+	
+	//Launch buttons check timer
+    buttonsTimer = new QTimer(this);
+    connect(buttonsTimer, SIGNAL(timeout()), this, SLOT(updateButtons()));
+    buttonsTimer->start(200);
 	
 	//Launch screen refresh timer
     screenRefreshTimer = new QTimer(this);

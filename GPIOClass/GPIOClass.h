@@ -16,14 +16,10 @@ class GPIOClass
 public:
 	GPIOClass();
 	GPIOClass(string gnum);
-	~GPIOClass();
 	int export_gpio();
 	int unexport_gpio();
     int setdir_gpio(string dir);
 	int setedge_gpio(string edge);
-	void init_gpioEventNotifier();
-	void enable_gpioEventNotifier();
-	QSocketNotifier* get_gpioEventNotifier();
     int setval_gpio(string val);
     int getval_gpio(string& val);
     string get_gpionum();
@@ -31,8 +27,6 @@ public:
 	
 private:
 	string gpionum;
-	QSocketNotifier* _gpioEventNotifier;
-	QFile _gpioValueFile;
 };
 
 #endif

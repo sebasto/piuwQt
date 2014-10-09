@@ -53,6 +53,7 @@ Q_OBJECT
 		QTimer *depthSensorTimer;
 		QTimer *clockTimer;
 		QTimer *batteryStatusTimer;
+		QTimer *buttonsTimer;
 		QTimer *screenRefreshTimer;
 		
 		///////////////////////////
@@ -82,8 +83,6 @@ Q_OBJECT
 		void updateDepthSensor();	
 		void updateClock();
 		void updateBatteryStatus();
-		void button1Pressed();
-		void button2Pressed();
-		void button3Pressed();
+		void updateButtons();
 		void updateScreen();
 };
