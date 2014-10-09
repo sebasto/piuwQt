@@ -222,31 +222,23 @@ void MainScreen::updateDepthSensor() {
 #endif
 }
 
-void MainScreen::checkButtons() {
-	string inputstate;
-	QString tmpString;
-/*
-	_button1->getval_gpio(inputstate);
-	if (inputstate == "1") {
-		_dist += 0.1;
-	}
+void MainScreen::button1Pressed(){
+	_dist += 0.1;
+}
+
+void MainScreen::button2Pressed(){
+	_dist -= 0.1;
+}
+
+void MainScreen::button3Pressed(){
+	_nbStations += 1;
+	_topoFile.write(_dist,_yaw,_depth);
 	
-	_button2->getval_gpio(inputstate);
-	if (inputstate == "1") {
-		_dist -= 0.1;
-	}
-	
-	_button3->getval_gpio(inputstate);
-	if (inputstate == "1") {
-		_nbStations += 1;
-	}
-*/
 }
 
 MainScreen::MainScreen(QWidget *parent)
     : QWidget(parent)
-{		
-	
+{
     //set font    
 	QFont font;
 	font.setPointSize(16);
@@ -332,25 +324,32 @@ MainScreen::MainScreen(QWidget *parent)
 	////////////////////////////////////////////////////////////
 	_dist = 0;
 	_nbStations = 0;
+	
 	//Initialize Buttons
 	_button1 = new GPIOClass("22");
 	_button1->export_gpio();
 	_button1->setdir_gpio("in");
-	
+	_button1->setedge_gpio("both");
+	_button1->init_gpioEventNotifier();
+	_button1->enable_gpioEventNotifier();
+	connect(_button1->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button1Pressed(int)));
+
 	_button2 = new GPIOClass("27");
 	_button2->export_gpio();
 	_button2->setdir_gpio("in");
+	_button2->setedge_gpio("both");
+	_button2->init_gpioEventNotifier();
+	_button2->enable_gpioEventNotifier();
+	connect(_button2->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button2Pressed(int)));
 	
 	_button3 = new GPIOClass("18");
 	_button3->export_gpio();
 	_button3->setdir_gpio("in");
-	
-	
-	//Launch button check timer
-    buttonCheckTimer = new QTimer(this);
-    connect(buttonCheckTimer, SIGNAL(timeout()), this, SLOT(checkButtons()));
-    buttonCheckTimer->start(100);
-	
+	_button3->setedge_gpio("both");
+	_button3->init_gpioEventNotifier();
+	_button3->enable_gpioEventNotifier();
+	connect(_button3->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button3Pressed(int)));
+		
 #ifndef NOSENSOR
 	//Initialize IMU 
 	RTIMUSettings *settings = new RTIMUSettings("RTIMULib");
@@ -397,20 +396,14 @@ void MainScreen::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Plus)
     {
 		_dist += 0.1;
-		tmpString.setNum(_dist,'f',1);
-        distValue->setText(tmpString);
     }
     if(event->key() == Qt::Key_Minus)
     {
 		_dist -= 0.1;
-		tmpString.setNum(_dist,'f',1);
-        distValue->setText(tmpString);
     }
     if((event->key() == Qt::Key_Return) || (event->key() == Qt::Key_Enter))
     {
 		_nbStations += 1;
-		tmpString.setNum(_nbStations);
-        nbStationsValue->setText(tmpString);
 		_topoFile.write(_dist,_yaw,_depth);
     }
 }

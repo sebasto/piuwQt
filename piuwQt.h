@@ -82,6 +82,8 @@ Q_OBJECT
 		void updateDepthSensor();	
 		void updateClock();
 		void updateBatteryStatus();
-		void checkButtons();
+		void button1Pressed();
+		void button2Pressed();
+		void button3Pressed();
 		void updateScreen();
 };

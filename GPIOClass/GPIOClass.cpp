@@ -9,11 +9,19 @@ using namespace std;
 GPIOClass::GPIOClass()
 {
 	this->gpionum = "4"; //GPIO4 is default
+	_gpioEventNotifier = NULL;
 }
 
 GPIOClass::GPIOClass(string gnum)
 {
 	this->gpionum = gnum;  //Instatiate GPIOClass object for GPIO pin number "gnum"
+	_gpioEventNotifier = NULL;
+}
+
+GPIOClass::~GPIOClass() {
+	if (_gpioEventNotifier != NULL) {
+		delete (_gpioEventNotifier);
+	}
 }
 
 int GPIOClass::export_gpio()
@@ -46,7 +54,6 @@ int GPIOClass::unexport_gpio()
 
 int GPIOClass::setdir_gpio(string dir)
 {
-
 	string setdir_str ="/sys/class/gpio/gpio" + this->gpionum + "/direction";
 	ofstream setdirgpio(setdir_str.c_str()); // open direction file for gpio
 		if (setdirgpio < 0){
@@ -59,6 +66,38 @@ int GPIOClass::setdir_gpio(string dir)
 	    return 0;
 }
 
+int GPIOClass::setedge_gpio(string edge)
+{
+	//edge can be ?, ? or both (rising, falling or both, but not sure of the keywords. TODO : find the right keywords and replace the "?" )
+	string setedge_str ="/sys/class/gpio/gpio" + this->gpionum + "/edge";
+	ofstream setedgegpio(setedge_str.c_str()); // open direction file for gpio
+		if (setedgegpio < 0){
+			cout << " OPERATION FAILED: Unable to set edge of GPIO"<< this->gpionum <<" ."<< endl;
+			return -1;
+		}
+
+		setedgegpio << edge; //write edge to edge file
+		setedgegpio.close(); // close edge file
+	    return 0;
+}
+
+void GPIOClass::init_gpioEventNotifier(){
+	if (_gpioEventNotifier != NULL) {
+		return;
+	}
+	QString gpio_value_path = QString::fromStdString(this->get_gpiopath());
+	_gpioValueFile.setFileName(gpio_value_path); /* Set up the value file */
+	_gpioValueFile.open(QFile::ReadOnly);
+	_gpioEventNotifier = new QSocketNotifier(_gpioValueFile.handle(), QSocketNotifier::Exception);
+}
+
+void GPIOClass::enable_gpioEventNotifier(){
+	_gpioEventNotifier->setEnabled(true);
+}
+
+QSocketNotifier* GPIOClass::get_gpioEventNotifier(){
+	return (_gpioEventNotifier);
+}
 
 int GPIOClass::setval_gpio(string val)
 {
@@ -98,7 +137,9 @@ int GPIOClass::getval_gpio(string& val){
 
 
 string GPIOClass::get_gpionum(){
+	return this->gpionum;
+}
 
-return this->gpionum;
-
+string GPIOClass::get_gpiopath() {
+	return "/sys/class/gpio/gpio" + this->gpionum;
 }
