@@ -241,10 +241,8 @@ void MainScreen::updateButtons(){
 		button1flag = 0;
 	}
 	
-	
 	_button2->getval_gpio(val);
 	
-	/*
 	if (val.compare("0") && button2flag == 0) {
 		_dist -= 0.1;
 		button2flag = 1;
@@ -262,7 +260,6 @@ void MainScreen::updateButtons(){
 	if (val.compare("1") && button3flag == 1) {
 		button3flag = 0;
 	}
-	*/
 }
 
 MainScreen::MainScreen(QWidget *parent)
@@ -360,19 +357,13 @@ MainScreen::MainScreen(QWidget *parent)
 	_button1->export_gpio();
 	_button1->setdir_gpio("in");
 
-	_button2 = new GPIOClass("27");
+	_button2 = new GPIOClass("22");
 	_button2->export_gpio();
 	_button2->setdir_gpio("in");
 	
-	/*
-	_button3 = new GPIOClass("18");
+	_button3 = new GPIOClass("4");
 	_button3->export_gpio();
 	_button3->setdir_gpio("in");
-	_button3->setedge_gpio("both");
-	_button3->init_gpioEventNotifier();
-	_button3->enable_gpioEventNotifier();
-	connect(_button3->get_gpioEventNotifier(), SIGNAL(activated(int)), this, SLOT(button3Pressed()));
-	*/
 	
 #ifndef NOSENSOR
 	//Initialize IMU 
